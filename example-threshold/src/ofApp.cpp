@@ -20,6 +20,9 @@ void ofApp::update() {
 		}
 		thresh.update();
 	}
+    unsigned char * buffer = thresh.getPixels().getData();
+    
+    foo.set((const char*)buffer, sizeof(buffer));
 }
 
 void ofApp::draw() {

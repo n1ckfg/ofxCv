@@ -26,7 +26,7 @@ void ofApp::setup() {
 		to.push_back(rigid.preMult(from[i]));
 	}
 	
-	ofMatrix4x4 rigidEstimate = estimateAffine3D(from, to);
+    ofMatrix4x4 rigidEstimate = estimateAffine3D(from, to, 1.0);
 
 	cout << "original matrix: " << endl << rigid << endl;
 	cout << "estimated as: " << endl << rigidEstimate << endl;

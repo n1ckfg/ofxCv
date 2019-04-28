@@ -82,13 +82,14 @@ namespace ofxCv {
 		void setFeaturesToTrack(const std::vector<glm::vec2> & features);
 		void setFeaturesToTrack(const std::vector<cv::Point2f> & features);
         void resetFlow();
+
+		std::vector<cv::Point2f> prevPts, nextPts;
+
 	protected:
-		
 		void drawFlow(ofRectangle r);
 		void calcFlow(cv::Mat prev, cv::Mat next);
 		void calcFeaturesToTrack(std::vector<cv::Point2f> & features, cv::Mat next);
 		
-		std::vector<cv::Point2f> prevPts, nextPts;
 		
 		//LK feature finding parameters
 		int windowSize;
