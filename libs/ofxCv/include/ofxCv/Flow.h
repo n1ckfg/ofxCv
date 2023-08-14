@@ -4,6 +4,8 @@
 
 namespace ofxCv {
 	
+	using namespace cv;
+	
 	class Flow {
 	public:
         // should constructor be protected?
@@ -16,18 +18,18 @@ namespace ofxCv {
 		
 		//call with two contiguous images
         template <class T>
-		void calcOpticalFlow(const T& lastImage, const T& currentImage) {
+		void calcOpticalFlow(T& lastImage, T& currentImage) {
             calcOpticalFlow(toCv(lastImage), toCv(currentImage));
         }
-		void calcOpticalFlow(cv::Mat lastImage, cv::Mat currentImage);
+		void calcOpticalFlow(Mat lastImage, Mat currentImage);
 		
 		//call with subsequent images to do running optical flow. 
 		//the Flow class internally stores the last image for convenience
         template <class T>
-		void calcOpticalFlow(const T& currentImage) {
+		void calcOpticalFlow(T& currentImage) {
             calcOpticalFlow(toCv(currentImage));
         }
-		void calcOpticalFlow(cv::Mat nextImage);
+		void calcOpticalFlow(Mat nextImage);
 		
 		void draw();
 		void draw(float x, float y);
@@ -39,13 +41,13 @@ namespace ofxCv {
         virtual void resetFlow();
         
     private:
-		cv::Mat last, curr;
+		Mat last, curr;
         
     protected:
 		bool hasFlow;
 		
 		//specific flow implementation
-		virtual void calcFlow(cv::Mat prev, cv::Mat next) = 0;
+		virtual void calcFlow(Mat prev, Mat next) = 0;
 		//specific drawing implementation
 		virtual void drawFlow(ofRectangle r) = 0;
 	};
@@ -73,23 +75,22 @@ namespace ofxCv {
 		void setPyramidLevels(int levels);
 		
 		//returns tracking features for this image
-		std::vector<glm::vec3> getFeatures();
-		std::vector<glm::vec2> getCurrent();
-		std::vector<glm::vec2> getMotion();
+		vector<ofPoint> getFeatures();
+		vector<ofPoint> getCurrent();
+		vector<ofVec2f> getMotion();
 		
 		// recalculates features to track
 		void resetFeaturesToTrack();
-		void setFeaturesToTrack(const std::vector<glm::vec2> & features);
-		void setFeaturesToTrack(const std::vector<cv::Point2f> & features);
+		void setFeaturesToTrack(const vector<ofVec2f> & features);
+		void setFeaturesToTrack(const vector<cv::Point2f> & features);
         void resetFlow();
-
-		std::vector<cv::Point2f> prevPts, nextPts;
-
 	protected:
-		void drawFlow(ofRectangle r);
-		void calcFlow(cv::Mat prev, cv::Mat next);
-		void calcFeaturesToTrack(std::vector<cv::Point2f> & features, cv::Mat next);
 		
+		void drawFlow(ofRectangle r);
+		void calcFlow(Mat prev, Mat next);
+		void calcFeaturesToTrack(vector<cv::Point2f> & features, Mat next);
+		
+		vector<cv::Point2f> prevPts, nextPts;
 		
 		//LK feature finding parameters
 		int windowSize;
@@ -106,10 +107,10 @@ namespace ofxCv {
 		bool calcFeaturesNextFrame;
 		
 		//pyramid + err/status data
-		std::vector<cv::Mat> pyramid;
-		std::vector<cv::Mat> prevPyramid;
-		std::vector<uchar> status;
-		std::vector<float> err;
+		vector<cv::Mat> pyramid;
+		vector<cv::Mat> prevPyramid;
+		vector<uchar> status;
+		vector<float> err;
 	};
 	
 	class FlowFarneback : public Flow {
@@ -129,13 +130,13 @@ namespace ofxCv {
 		void setPolySigma(float polySigma);
 		void setUseGaussian(bool gaussian);
 		
-		cv::Mat& getFlow();
-		glm::vec2 getTotalFlow();
-		glm::vec2 getAverageFlow();
-		glm::vec2 getFlowOffset(int x, int y);
-		glm::vec2 getFlowPosition(int x, int y);
-		glm::vec2 getTotalFlowInRegion(ofRectangle region);
-		glm::vec2 getAverageFlowInRegion(ofRectangle region);
+        Mat& getFlow();
+		ofVec2f getTotalFlow();
+		ofVec2f getAverageFlow();		
+		ofVec2f getFlowOffset(int x, int y);
+		ofVec2f getFlowPosition(int x, int y);
+		ofVec2f getTotalFlowInRegion(ofRectangle region);
+		ofVec2f getAverageFlowInRegion(ofRectangle region);
 		
         //call this if you switch to a new video file to reset internal caches
         void resetFlow();
@@ -144,7 +145,7 @@ namespace ofxCv {
 		cv::Mat flow;
 
 		void drawFlow(ofRectangle rect);
-		void calcFlow(cv::Mat prev, cv::Mat next);
+		void calcFlow(Mat prev, Mat next);
 		
 		float pyramidScale;
 		int numLevels;

@@ -2,7 +2,6 @@
 
 #include "ofMain.h"
 #include "ofxCv.h"
-#include "ofxGui.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -10,11 +9,9 @@ public:
 	void update();
 	void draw();
 	
+	void keyPressed(int key);
+	
 	ofVideoGrabber cam;
 	ofxCv::RunningBackground background;
 	ofImage thresholded;
-    
-    ofxPanel gui;
-    ofParameter<bool> resetBackground;
-    ofParameter<float> learningTime, thresholdValue;
 };

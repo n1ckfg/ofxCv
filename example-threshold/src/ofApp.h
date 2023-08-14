@@ -10,6 +10,5 @@ public:
 	void draw();
 	
 	ofVideoGrabber cam;
-    ofImage thresh;
-    ofBuffer foo;
+	ofImage thresh;
 };

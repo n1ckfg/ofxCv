@@ -4,7 +4,7 @@ using namespace cv;
 using namespace ofxCv;
 
 void ofApp::setup() {
-	cam.setup(640, 480);
+	cam.initGrabber(640, 480);
 	thresh.allocate(640, 480, OF_IMAGE_GRAYSCALE);
 }
 
@@ -20,9 +20,6 @@ void ofApp::update() {
 		}
 		thresh.update();
 	}
-    unsigned char * buffer = thresh.getPixels().getData();
-    
-    foo.set((const char*)buffer, sizeof(buffer));
 }
 
 void ofApp::draw() {

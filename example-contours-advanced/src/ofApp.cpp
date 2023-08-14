@@ -4,23 +4,18 @@ using namespace ofxCv;
 using namespace cv;
 
 void ofApp::setup() {
-	cam.setup(640, 480);
+	cam.initGrabber(640, 480);
 	contourFinder.setMinAreaRadius(10);
 	contourFinder.setMaxAreaRadius(150);
 	//contourFinder.setInvert(true); // find black instead of white
-    
-    gui.setup();
-    gui.add(threshold.set("Threshold", 128, 0, 255));
-    gui.add(trackHs.set("Track Hue/Saturation", false));
-    gui.add(holes.set("Holes", false));
+	trackingColorMode = TRACK_COLOR_RGB;
 }
 
 void ofApp::update() {
 	cam.update();
-    if(cam.isFrameNew()) {
-        contourFinder.setTargetColor(targetColor, trackHs ? TRACK_COLOR_HS : TRACK_COLOR_RGB);
+	if(cam.isFrameNew()) {
+		threshold = ofMap(mouseX, 0, ofGetWidth(), 0, 255);
 		contourFinder.setThreshold(threshold);
-        contourFinder.setFindHoles(holes);
 		contourFinder.findContours(cam);
 	}
 }
@@ -37,8 +32,8 @@ void ofApp::draw() {
 	for(int i = 0; i < n; i++) {
 		// smallest rectangle that fits the contour
 		ofSetColor(cyanPrint);
-		ofPolyline minAreaRect = toOf(contourFinder.getMinAreaRect(i));
-		minAreaRect.draw();
+		ofPolyline minAreRect = toOf(contourFinder.getMinAreaRect(i));
+		minAreRect.draw();
 		
 		// ellipse that best fits the contour
 		ofSetColor(magentaPrint);
@@ -48,14 +43,14 @@ void ofApp::draw() {
 		ofVec2f ellipseSize = toOf(ellipse.size);
 		ofTranslate(ellipseCenter.x, ellipseCenter.y);
 		ofRotate(ellipse.angle);
-		ofDrawEllipse(0, 0, ellipseSize.x, ellipseSize.y);
+		ofEllipse(0, 0, ellipseSize.x, ellipseSize.y);
 		ofPopMatrix();
 		
 		// minimum area circle that encloses the contour
 		ofSetColor(cyanPrint);
 		float circleRadius;
 		ofVec2f circleCenter = toOf(contourFinder.getMinEnclosingCircle(i, circleRadius));
-		ofDrawCircle(circleCenter, circleRadius);
+		ofCircle(circleCenter, circleRadius);
 		
 		// convex hull of the contour
 		ofSetColor(yellowPrint);
@@ -65,7 +60,7 @@ void ofApp::draw() {
 		// defects of the convex hull
 		vector<cv::Vec4i> defects = contourFinder.getConvexityDefects(i);
 		for(int j = 0; j < defects.size(); j++) {
-			ofDrawLine(defects[j][0], defects[j][1], defects[j][2], defects[j][3]);
+			ofLine(defects[j][0], defects[j][1], defects[j][2], defects[j][3]);
 		}
 		
 		// some different styles of contour centers
@@ -73,11 +68,11 @@ void ofApp::draw() {
 		ofVec2f average = toOf(contourFinder.getAverage(i));
 		ofVec2f center = toOf(contourFinder.getCenter(i));
 		ofSetColor(cyanPrint);
-		ofDrawCircle(centroid, 1);
+		ofCircle(centroid, 1);
 		ofSetColor(magentaPrint);
-		ofDrawCircle(average, 1);
+		ofCircle(average, 1);
 		ofSetColor(yellowPrint);
-		ofDrawCircle(center, 1);
+		ofCircle(center, 1);
 		
 		// you can also get the area and perimeter using ofPolyline:
 		// ofPolyline::getArea() and ofPolyline::getPerimeter()
@@ -91,24 +86,34 @@ void ofApp::draw() {
 		ofPushMatrix();
 		ofTranslate(centroid.x, centroid.y);
 		ofScale(5, 5);
-		ofDrawLine(0, 0, balance.x, balance.y);
+		ofLine(0, 0, balance.x, balance.y);
 		ofPopMatrix();
-        
-        if(contourFinder.getHole(i)) {
-            ofDrawBitmapStringHighlight("hole", center.x, center.y);
-        }
 	}
 
-    gui.draw();
-    
-	ofTranslate(8, 90);
+	ofSetColor(255);
+	drawHighlightString(ofToString((int) ofGetFrameRate()) + " fps", 10, 10);
+	drawHighlightString(ofToString((int) threshold) + " threshold", 10, 30);
+	drawHighlightString(trackingColorMode == TRACK_COLOR_RGB ? "RGB tracking" : "hue tracking", 10, 50);
+	
+	ofTranslate(8, 75);
 	ofFill();
 	ofSetColor(0);
-	ofDrawRectangle(-3, -3, 64+6, 64+6);
+	ofRect(-3, -3, 64+6, 64+6);
 	ofSetColor(targetColor);
-	ofDrawRectangle(0, 0, 64, 64);
+	ofRect(0, 0, 64, 64);
 }
 
 void ofApp::mousePressed(int x, int y, int button) {
-	targetColor = cam.getPixels().getColor(x, y);
+	targetColor = cam.getPixelsRef().getColor(x, y);
+	contourFinder.setTargetColor(targetColor, trackingColorMode);
+}
+
+void ofApp::keyPressed(int key) {
+	if(key == 'h') {
+		trackingColorMode = TRACK_COLOR_HS;
+	}
+	if(key == 'r') {
+		trackingColorMode = TRACK_COLOR_RGB;
+	}
+	contourFinder.setTargetColor(targetColor, trackingColorMode);
 }

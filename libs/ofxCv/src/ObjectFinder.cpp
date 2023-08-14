@@ -1,10 +1,6 @@
-#include "ofxCv/ObjectFinder.h"
-#include "ofGraphics.h"
+#include "ObjectFinder.h"
 
 namespace ofxCv {
-	using namespace cv;
-	using namespace std;
-
 	ObjectFinder::ObjectFinder()
 	:rescale(1)
 	,multiScaleFactor(1.1)
@@ -16,7 +12,7 @@ namespace ofxCv {
 	,findBiggestObject(false)
 	{
 	}
-	void ObjectFinder::setup(std::string cascadeFilename) {
+	void ObjectFinder::setup(string cascadeFilename) {
 		cascadeFilename = ofToDataPath(cascadeFilename);
 		if(ofFile(cascadeFilename).exists()) {
 			classifier.load(cascadeFilename);
@@ -84,7 +80,7 @@ namespace ofxCv {
 		ofNoFill();
 		for(int i = 0; i < size(); i++) {
 			ofRectangle object = getObject(i);
-			ofDrawRectangle(object);
+			ofRect(object);
 			ofDrawBitmapStringHighlight(ofToString(getLabel(i)), object.x, object.y);
 		}
 		ofPopStyle();

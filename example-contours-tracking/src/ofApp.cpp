@@ -7,13 +7,13 @@ void ofApp::setup() {
 	ofSetVerticalSync(true);
 	ofBackground(0);
 	
-	movie.load("video.mov");
+	movie.loadMovie("video.mov");
 	movie.play();
 	
 	contourFinder.setMinAreaRadius(1);
 	contourFinder.setMaxAreaRadius(100);
 	contourFinder.setThreshold(15);
-	// wait for half a second before forgetting something
+	// wait for half a frame before forgetting something
 	contourFinder.getTracker().setPersistence(15);
 	// an object can move up to 32 pixels per frame
 	contourFinder.getTracker().setMaximumDistance(32);
@@ -46,7 +46,7 @@ void ofApp::draw() {
 			ofDrawBitmapString(msg, 0, 0);
 			ofVec2f velocity = toOf(contourFinder.getVelocity(i));
 			ofScale(5, 5);
-			ofDrawLine(0, 0, velocity.x, velocity.y);
+			ofLine(0, 0, velocity.x, velocity.y);
 			ofPopMatrix();
 		}
 	} else {
@@ -63,7 +63,7 @@ void ofApp::draw() {
 				// get the centers of the rectangles
 				ofVec2f previousPosition(previous.x + previous.width / 2, previous.y + previous.height / 2);
 				ofVec2f currentPosition(current.x + current.width / 2, current.y + current.height / 2);
-				ofDrawLine(previousPosition, currentPosition);
+				ofLine(previousPosition, currentPosition);
 			}
 		}
 	}
@@ -76,22 +76,22 @@ void ofApp::draw() {
 	ofSetColor(cyanPrint);
 	for(int i = 0; i < currentLabels.size(); i++) {
 		int j = currentLabels[i];
-		ofDrawLine(j, 0, j, 4);
+		ofLine(j, 0, j, 4);
 	}
 	ofSetColor(magentaPrint);
 	for(int i = 0; i < previousLabels.size(); i++) {
 		int j = previousLabels[i];
-		ofDrawLine(j, 4, j, 8);
+		ofLine(j, 4, j, 8);
 	}
 	ofSetColor(yellowPrint);
 	for(int i = 0; i < newLabels.size(); i++) {
 		int j = newLabels[i];
-		ofDrawLine(j, 8, j, 12);
+		ofLine(j, 8, j, 12);
 	}
 	ofSetColor(ofColor::white);
 	for(int i = 0; i < deadLabels.size(); i++) {
 		int j = deadLabels[i];
-		ofDrawLine(j, 12, j, 16);
+		ofLine(j, 12, j, 16);
 	}
 }
 

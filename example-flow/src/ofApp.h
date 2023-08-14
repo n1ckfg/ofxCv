@@ -2,7 +2,6 @@
 
 #include "ofMain.h"
 #include "ofxCv.h"
-#include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
 public:
@@ -12,14 +11,11 @@ public:
 	
 	ofVideoGrabber camera;
 	
-	ofxCv::FlowFarneback fb;
-	ofxCv::FlowPyrLK lk;
+	ofxCv::FlowFarneback farneback;
+	ofxCv::FlowPyrLK pyrLk;
 	
 	ofxCv::Flow* curFlow;
 		
-    ofxPanel gui;
-    ofParameter<float> fbPyrScale, lkQualityLevel, fbPolySigma;
-    ofParameter<int> fbLevels, lkWinSize, fbIterations, fbPolyN, fbWinSize, lkMaxLevel, lkMaxFeatures, lkMinDistance;
-    ofParameter<bool> fbUseGaussian, usefb;
+    ofxGui gui;
 };
 

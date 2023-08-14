@@ -12,5 +12,4 @@ public:
 	
 	ofImage bayer, rgb;
 	int bayerType;
-    string bayerName;
 };

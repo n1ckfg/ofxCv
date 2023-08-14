@@ -20,30 +20,30 @@
 #pragma once
 
 #include "ofxCv.h"
-#include "ofNode.h"
 
 namespace ofxCv {
+
+	using namespace cv;
+	
 	class Intrinsics {
 	public:
-        void setup(float focalLengthMm, cv::Size imageSizePx, cv::Size2f sensorSizeMm, cv::Point2d principalPointPct = cv::Point2d(.5,.5));
-		void setup(cv::Mat cameraMatrix, cv::Size imageSizePx, cv::Size2f sensorSizeMm = cv::Size2f(0, 0));
+		// kinect is 6.66mm(H) x 5.32mm(V)
+		void setup(Mat cameraMatrix, cv::Size imageSize, cv::Size sensorSize = cv::Size(0, 0));
 		void setImageSize(cv::Size imgSize);
-		cv::Mat getCameraMatrix() const;
+		Mat getCameraMatrix() const;
 		cv::Size getImageSize() const;
-		cv::Size2f getSensorSize() const;
+		cv::Size getSensorSize() const;
 		cv::Point2d getFov() const;
 		double getFocalLength() const;
 		double getAspectRatio() const;
-		cv::Point2d getPrincipalPoint() const;
+		Point2d getPrincipalPoint() const;
 		void loadProjectionMatrix(float nearDist = 10., float farDist = 10000., cv::Point2d viewportOffset = cv::Point2d(0, 0)) const;
 	protected:
-		void updateValues();
-		cv::Mat cameraMatrix;
-		cv::Size imageSize;
-		cv::Size2f sensorSize;
+		Mat cameraMatrix;
+		cv::Size imageSize, sensorSize;
 		cv::Point2d fov;
 		double focalLength, aspectRatio;
-		cv::Point2d principalPoint;
+		Point2d principalPoint;
 	};
 	
 	enum CalibrationPattern {CHESSBOARD, CIRCLES_GRID, ASYMMETRIC_CIRCLES_GRID};
@@ -52,9 +52,8 @@ namespace ofxCv {
 	public:
 		Calibration();
 		
-		void save(const std::string& filename, bool absolute = false) const;
-		void load(const std::string&  filename, bool absolute = false);
-		void loadLcp(const std::string&  filename, float focalLength, int imageWidth=0, int imageHeight=0, bool absolutePath = false);
+		void save(string filename, bool absolute = false) const;
+		void load(string filename, bool absolute = false);
 		void reset();
 
 		void setPatternType(CalibrationPattern patternType);
@@ -63,63 +62,61 @@ namespace ofxCv {
 		/// set this to the pixel size of your smallest square. default is 11
 		void setSubpixelSize(int subpixelSize);
 
-		bool add(cv::Mat img);
+		bool add(Mat img);
 		bool clean(float minReprojectionError = 2.f);
 		bool calibrate();
-		bool calibrateFromDirectory(std::string directory);
-		bool findBoard(cv::Mat img, std::vector<cv::Point2f> &pointBuf, bool refine = true);
-		void setIntrinsics(Intrinsics& distortedIntrinsics);
-		void setDistortionCoefficients(float k1, float k2, float p1, float p2, float k3=0, float k4=0, float k5=0, float k6=0);
-
-		void undistort(cv::Mat img, int interpolationMode = cv::INTER_LINEAR);
-		void undistort(cv::Mat src, cv::Mat dst, int interpolationMode = cv::INTER_LINEAR);
+		bool calibrateFromDirectory(string directory);
+		bool findBoard(Mat img, vector<Point2f> &pointBuf, bool refine = true);
+		void setIntrinsics(Intrinsics& distortedIntrinsics, Mat& distortionCoefficients);
+        
+		void undistort(Mat img, int interpolationMode = INTER_NEAREST);
+		void undistort(Mat src, Mat dst, int interpolationMode = INTER_NEAREST);
 		
-		glm::vec2 undistort(glm::vec2& src) const;
-		void undistort(std::vector<glm::vec2>& src, std::vector<glm::vec2>& dst) const;
+		ofVec2f undistort(ofVec2f& src) const;
+		void undistort(vector<ofVec2f>& src, vector<ofVec2f>& dst) const;
 		
-		bool getTransformation(Calibration& dst, cv::Mat& rotation, cv::Mat& translation);
+		bool getTransformation(Calibration& dst, Mat& rotation, Mat& translation);
 		
 		float getReprojectionError() const;
 		float getReprojectionError(int i) const;
 		
 		const Intrinsics& getDistortedIntrinsics() const;
 		const Intrinsics& getUndistortedIntrinsics() const;
-		cv::Mat getDistCoeffs() const;
+		Mat getDistCoeffs() const;
 		
 		// if you want a wider fov, say setFillFrame(false) before load() or calibrate()
 		void setFillFrame(bool fillFrame);
 		
-		std::size_t size() const;
+		int size() const;
 		cv::Size getPatternSize() const;
 		float getSquareSize() const;
-		static std::vector<cv::Point3f> createObjectPoints(cv::Size patternSize, float squareSize, CalibrationPattern patternType);
+		static vector<Point3f> createObjectPoints(cv::Size patternSize, float squareSize, CalibrationPattern patternType);
 		
 		void customDraw();
-		void draw(std::size_t i) const;
-		void draw() const;
+		void draw(int i) const;
 		void draw3d() const;
-		void draw3d(std::size_t i) const;
+		void draw3d(int i) const;
 		
 		bool isReady();
-		std::vector<std::vector<cv::Point2f> > imagePoints;
+		vector<vector<Point2f> > imagePoints;
 		
 	protected:
 		CalibrationPattern patternType;
 		cv::Size patternSize, addedImageSize, subpixelSize;
 		float squareSize;
-		cv::Mat grayMat;
+		Mat grayMat;
 		
-		cv::Mat distCoeffs;
+		Mat distCoeffs;
 		
-		std::vector<cv::Mat> boardRotations, boardTranslations;
-		std::vector<std::vector<cv::Point3f> > objectPoints;
+		vector<Mat> boardRotations, boardTranslations;
+		vector<vector<Point3f> > objectPoints;
 		
 		float reprojectionError;
-		std::vector<float> perViewErrors;
+		vector<float> perViewErrors;
 		
 		bool fillFrame;
-		cv::Mat undistortBuffer;
-		cv::Mat undistortMapX, undistortMapY;
+		Mat undistortBuffer;
+		Mat undistortMapX, undistortMapY;
 		
 		void updateObjectPoints();
 		void updateReprojectionError();

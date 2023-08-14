@@ -5,16 +5,15 @@ using namespace cv;
 
 void ofApp::setup() {
 	ofSetVerticalSync(true);
-	cam.setup(640, 480);
+	cam.initGrabber(640, 480);
 	
 	calibration.load("mbp-2011-isight.yml");
 	patternSize = calibration.getPatternSize();
 	objectPoints = Calibration::createObjectPoints(patternSize, 1., CHESSBOARD);
 	found = false;
 	
-    light.enable();
+	light.enable();
 	light.setPosition(500, 0, 0);
-    ofDisableLighting();
 }
 
 void ofApp::update() {
@@ -48,16 +47,16 @@ void ofApp::draw() {
 		
 		ofEnableLighting();
 		ofSetColor(255);
-        ofEnableDepthTest();
+		glEnable(GL_DEPTH_TEST);
 		ofTranslate(.5, .5, -.5);
 		for(int i = 0; i < patternSize.width / 2; i++) {
 			for(int j = 0; j < patternSize.height / 2; j++) {
 				for(int k = 0; k < 3; k++) {
-					ofDrawBox(2 * i, 2 * j, -2 * k, 1);
+					ofBox(2 * i, 2 * j, -2 * k, 1);
 				}
 			}
 		}
-        ofDisableDepthTest();
-        ofDisableLighting();
+		glDisable(GL_DEPTH_TEST);
+		ofDisableLighting();
 	}
 }

@@ -5,7 +5,7 @@ using namespace cv;
 
 void ofApp::setup() {
 	ofSetVerticalSync(true);
-	cam.setup(320, 240);
+	cam.initGrabber(320, 240);
 	
 	// imitate() will set up previous and diff
 	// so they have the same size and type as cam
@@ -17,7 +17,7 @@ void ofApp::update() {
 	cam.update();
 	if(cam.isFrameNew()) {
 		// take the absolute difference of prev and cam and save it inside diff
-		absdiff(cam, previous, diff);
+		absdiff(previous, cam, diff);
 		diff.update();
 		
 		// like ofSetPixels, but more concise and cross-toolkit
@@ -43,9 +43,9 @@ void ofApp::draw() {
 	float diffBlue = diffMean[2];
 	
 	ofSetColor(255, 0, 0);
-	ofDrawRectangle(0, 0, diffRed, 10);
+	ofRect(0, 0, diffRed, 10);
 	ofSetColor(0, 255, 0);
-	ofDrawRectangle(0, 15, diffGreen, 10);
+	ofRect(0, 15, diffGreen, 10);
 	ofSetColor(0, 0, 255);
-	ofDrawRectangle(0, 30, diffBlue, 10);
+	ofRect(0, 30, diffBlue, 10);
 }

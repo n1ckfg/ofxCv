@@ -6,8 +6,8 @@ using namespace cv;
 void ofApp::setup() {
 	ofSetVerticalSync(true);
 
-	bayer.load("bayer.png");
-	rgb.load("rgb.png");
+	bayer.loadImage("bayer.png");
+	rgb.loadImage("rgb.png");
 	
 	bayerType = 0;
 }
@@ -15,22 +15,10 @@ void ofApp::setup() {
 void ofApp::update() {
 	int code;
 	switch(bayerType) {
-		case 0:
-            code = CV_BayerBG2RGB;
-            bayerName = "CV_BayerBG2RGB";
-            break;
-		case 1:
-            code = CV_BayerGB2RGB;
-            bayerName = "CV_BayerGB2RGB";
-            break;
-		case 2:
-            code = CV_BayerRG2RGB;
-            bayerName = "CV_BayerRG2RGB";
-            break;
-		case 3:
-            code = CV_BayerGR2RGB;
-            bayerName = "CV_BayerGR2RGB";
-            break;
+		case 0: code = CV_BayerBG2RGB; break;
+		case 1: code = CV_BayerGB2RGB; break;
+		case 2: code = CV_BayerRG2RGB; break;
+		case 3: code = CV_BayerGR2RGB; break;
 	}
 	
 	convertColor(bayer, rgb, code);
@@ -45,7 +33,7 @@ void ofApp::draw() {
 	ofTranslate(bayer.getWidth(), 0);
 	ofPopMatrix();
 	
-	ofDrawBitmapStringHighlight("use the up/down keys: " + bayerName, 10, 20);
+	drawHighlightString("use the up/down keys: " + ofToString(bayerType), 10, 10);
 }
 
 void ofApp::keyPressed(int key) {

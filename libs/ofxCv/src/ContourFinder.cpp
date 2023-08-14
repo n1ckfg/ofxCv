@@ -1,9 +1,7 @@
 #include "ofxCv/ContourFinder.h"
 #include "ofxCv/Wrappers.h"
-#include "ofGraphics.h"
 
 namespace ofxCv {
-    using namespace std;
 
 	struct CompareContourArea
 	{
@@ -20,6 +18,8 @@ namespace ofxCv {
 
 		const std::vector<double>& mAreaVec;
 	};
+
+	using namespace cv;
 	
 	ContourFinder::ContourFinder()
 	:autoThreshold(true)
@@ -33,17 +33,14 @@ namespace ofxCv {
 		resetMaxArea();
 	}
 	
-	void ContourFinder::findContours(cv::Mat img) {
+	void ContourFinder::findContours(Mat img) {
 		// threshold the image using a tracked color or just binary grayscale
 		if(useTargetColor) {
-			cv::Scalar offset(thresholdValue, thresholdValue, thresholdValue);
-			cv::Scalar base = toCv(targetColor);
+			Scalar offset(thresholdValue, thresholdValue, thresholdValue);
+			Scalar base = toCv(targetColor);
 			if(trackingColorMode == TRACK_COLOR_RGB) {
 				inRange(img, base - offset, base + offset, thresh);
 			} else {
-                // all the HSV modes are broken incorrect,
-                // because opencv uses hue 0-180 not 0-255
-                // which means that the math doesn't wrap.
 				if(trackingColorMode == TRACK_COLOR_H) {
 					offset[1] = 255;
 					offset[2] = 255;
@@ -53,8 +50,8 @@ namespace ofxCv {
 				}
 				cvtColor(img, hsvBuffer, CV_RGB2HSV);
 				base = toCv(convertColor(targetColor, CV_RGB2HSV));
-				cv::Scalar lowerb = base - offset;
-				cv::Scalar upperb = base + offset;
+				Scalar lowerb = base - offset;
+				Scalar upperb = base + offset;
 				inRange(hsvBuffer, lowerb, upperb, thresh);
 			}
 		} else {
@@ -65,40 +62,32 @@ namespace ofxCv {
 		}
 		
 		// run the contour finder
-		std::vector<std::vector<cv::Point> > allContours;
+		vector<vector<cv::Point> > allContours;
 		int simplifyMode = simplify ? CV_CHAIN_APPROX_SIMPLE : CV_CHAIN_APPROX_NONE;
 		cv::findContours(thresh, allContours, contourFindingMode, simplifyMode);
 		
 		// filter the contours
 		bool needMinFilter = (minArea > 0);
-		bool needMaxFilter = maxAreaNorm ? (maxArea < 1) : (maxArea < std::numeric_limits<float>::infinity());
-		std::vector<size_t> allIndices;
-		std::vector<double> allAreas;
-        std::vector<bool> allHoles;
+		bool needMaxFilter = maxAreaNorm ? (maxArea < 1) : (maxArea < numeric_limits<float>::infinity());
+		vector<size_t> allIndices;
+		vector<double> allAreas;
 		if(needMinFilter || needMaxFilter) {
 			double imgArea = img.rows * img.cols;
 			double imgMinArea = minAreaNorm ? (minArea * imgArea) : minArea;
 			double imgMaxArea = maxAreaNorm ? (maxArea * imgArea) : maxArea;
 			for(size_t i = 0; i < allContours.size(); i++) {
-				double curArea = cv::contourArea(cv::Mat(allContours[i]), true);
-                bool hole = true;
-                if(curArea < 0) {
-                    curArea = -curArea;
-                    hole = false;
-                }
-
+				double curArea = contourArea(Mat(allContours[i]));
+				allAreas.push_back(curArea);
 				if((!needMinFilter || curArea >= imgMinArea) &&
 					 (!needMaxFilter || curArea <= imgMaxArea)) {
 					allIndices.push_back(i);
-                    allHoles.push_back(hole);
-                    allAreas.push_back(curArea);
 				}
 			}
 		} else {
 			for(size_t i = 0; i < allContours.size(); i++) {
-                double curArea = cv::contourArea(cv::Mat(allContours[i]), true);
-                allAreas.push_back(abs(curArea));
-                allHoles.push_back(curArea > 0);
+				if (sortBySize) {
+					allAreas.push_back(contourArea(allContours[i]));
+				}
 				allIndices.push_back(i);
 			}
 		}
@@ -111,14 +100,11 @@ namespace ofxCv {
 		// generate polylines and bounding boxes from the contours
 		contours.clear();
 		polylines.clear();
-        boundingRects.clear();
-        holes.clear();
-
+		boundingRects.clear();
 		for(size_t i = 0; i < allIndices.size(); i++) {
 			contours.push_back(allContours[allIndices[i]]);
-			polylines.push_back(toOf(contours.back()));
-			boundingRects.push_back(boundingRect(contours.back()));
-            holes.push_back(allHoles[i]);
+			polylines.push_back(toOf(contours[i]));
+			boundingRects.push_back(boundingRect(contours[i]));
 		}
 		
 		// track bounding boxes
@@ -138,15 +124,15 @@ namespace ofxCv {
 		sortBySize = sizeSort;
 	}
 
-	const std::vector<std::vector<cv::Point> >& ContourFinder::getContours() const {
+	const vector<vector<cv::Point> >& ContourFinder::getContours() const {
 		return contours;
 	}
 	
-	const std::vector<ofPolyline>& ContourFinder::getPolylines() const {
+	const vector<ofPolyline>& ContourFinder::getPolylines() const {
 		return polylines;
 	}
 	
-	const std::vector<cv::Rect>& ContourFinder::getBoundingRects() const {
+	const vector<cv::Rect>& ContourFinder::getBoundingRects() const {
 		return boundingRects;
 	}
 	
@@ -154,7 +140,7 @@ namespace ofxCv {
 		return contours.size();
 	}
 	
-	std::vector<cv::Point>& ContourFinder::getContour(unsigned int i) {
+	vector<cv::Point>& ContourFinder::getContour(unsigned int i) {
 		return contours[i];
 	}
 	
@@ -172,16 +158,12 @@ namespace ofxCv {
 	}
 	
 	cv::Point2f ContourFinder::getCentroid(unsigned int i) const {
-		cv::Moments m = moments(contours[i]);
-		if(m.m00!=0){
-			return cv::Point2f(m.m10 / m.m00, m.m01 / m.m00);
-		}else{
-			return cv::Point2f(0, 0);
-		}
+		Moments m = moments(contours[i]);
+		return cv::Point2f(m.m10 / m.m00, m.m01 / m.m00);
 	}
 	
 	cv::Point2f ContourFinder::getAverage(unsigned int i) const {
-		cv::Scalar average = mean(contours[i]);
+		Scalar average = mean(contours[i]);
 		return cv::Point2f(average[0], average[1]);
 	}
 	
@@ -197,13 +179,13 @@ namespace ofxCv {
 		return arcLength(contours[i], true);
 	}
 	
-	std::vector<cv::Point> ContourFinder::getConvexHull(unsigned int i) const {
-		std::vector<cv::Point> hull;
+	vector<cv::Point> ContourFinder::getConvexHull(unsigned int i) const {
+		vector<cv::Point> hull;
 		convexHull(contours[i], hull);
 		return hull;
 	}
 	
-	std::vector<cv::Vec4i> ContourFinder::getConvexityDefects(unsigned int i) const {
+	vector<cv::Vec4i> ContourFinder::getConvexityDefects(unsigned int i) const {
 		return convexityDefects(contours[i]);
 	}
 	
@@ -224,13 +206,13 @@ namespace ofxCv {
 		return fitEllipse(contours[i]);
 	}
 	
-	std::vector<cv::Point> ContourFinder::getFitQuad(unsigned int i) const {
-		std::vector<cv::Point> convexHull = getConvexHull(i);
-		std::vector<cv::Point> quad = convexHull;
+	vector<cv::Point> ContourFinder::getFitQuad(unsigned int i) const {
+		vector<cv::Point> convexHull = getConvexHull(i);		
+		vector<cv::Point> quad = convexHull;
 		
 		static const unsigned int targetPoints = 4;
 		static const unsigned int maxIterations = 16;
-		static const double infinity = std::numeric_limits<double>::infinity();
+		static const double infinity = numeric_limits<double>::infinity();
 		double minEpsilon = 0;
 		double maxEpsilon = infinity;
 		double curEpsilon = 16; // good initial guess
@@ -238,7 +220,7 @@ namespace ofxCv {
 		// unbounded binary search to simplify the convex hull until it's 4 points
 		if(quad.size() > 4) {
 			for(int i = 0; i <(int) maxIterations; i++) {
-                cv::approxPolyDP(cv::Mat(convexHull), quad, curEpsilon, true);
+				approxPolyDP(Mat(convexHull), quad, curEpsilon, true);
 				if(quad.size() == targetPoints) {
 					break;
 				}
@@ -258,16 +240,12 @@ namespace ofxCv {
 		}
 		
 		return quad;
-    }
-    
-    bool ContourFinder::getHole(unsigned int i) const {
-        return holes[i];
-    }
+	}
 	
 	cv::Vec2f ContourFinder::getVelocity(unsigned int i) const {
 		return tracker.getVelocity(i);
 	}
-    
+	
 	unsigned int ContourFinder::getLabel(unsigned int i) const {
 		return tracker.getCurrentLabels()[i];
 	}
@@ -276,10 +254,6 @@ namespace ofxCv {
 		return tracker;
 	}
 	
-    double ContourFinder::pointPolygonTest(unsigned int i, cv::Point2f point) {
-        return cv::pointPolygonTest(contours[i], point, true);
-    }
-    
 	void ContourFinder::setAutoThreshold(bool autoThreshold) {
 		this->autoThreshold = autoThreshold;
 	}
@@ -306,12 +280,12 @@ namespace ofxCv {
 		this->simplify = simplify;
 	}
 	
-	void ContourFinder::draw() const {
+	void ContourFinder::draw() {
 		ofPushStyle();
 		ofNoFill();
-        for(std::size_t i = 0; i < polylines.size(); i++) {
+		for(int i = 0; i < (int)polylines.size(); i++) {
 			polylines[i].draw();
-			ofDrawRectangle(toOf(getBoundingRect(i)));
+			ofRect(toOf(getBoundingRect(i)));
 		}
 		ofPopStyle();
 	}
@@ -321,7 +295,7 @@ namespace ofxCv {
 	}
 	
 	void ContourFinder::resetMaxArea() {
-		setMaxArea(std::numeric_limits<float>::infinity());
+		setMaxArea(numeric_limits<float>::infinity());
 	}
 	
 	void ContourFinder::setMinArea(float minArea) {

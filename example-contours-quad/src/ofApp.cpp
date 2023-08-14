@@ -4,7 +4,7 @@ using namespace ofxCv;
 using namespace cv;
 
 void ofApp::setup() {
-	cam.setup(640, 480);
+	cam.initGrabber(640, 480);
 	contourFinder.setMinAreaRadius(10);
 	contourFinder.setMaxAreaRadius(200);
 	unwarped.allocate(150, 100, OF_IMAGE_COLOR);
@@ -46,8 +46,8 @@ void ofApp::draw() {
 	}
 
 	ofSetColor(255);
-	ofDrawBitmapStringHighlight(ofToString((int) ofGetFrameRate()) + " fps", 10, 20);
-	ofDrawBitmapStringHighlight(ofToString((int) threshold) + " threshold", 10, 40);
+	drawHighlightString(ofToString((int) ofGetFrameRate()) + " fps", 10, 20);
+	drawHighlightString(ofToString((int) threshold) + " threshold", 10, 40);
 	
 	ofTranslate(8, 75);
 	ofFill();

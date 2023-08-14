@@ -9,7 +9,7 @@ const int startCleaning = 10; // start cleaning outliers after this many samples
 
 void ofApp::setup() {
 	ofSetVerticalSync(true);
-	cam.setup(640, 480);
+	cam.initGrabber(640, 480);
 	
 	FileStorage settings(ofToDataPath("settings.yml"), FileStorage::READ);
 	if(settings.isOpened()) {
@@ -74,13 +74,11 @@ void ofApp::draw() {
 	
 	stringstream intrinsics;
 	intrinsics << "fov: " << toOf(calibration.getDistortedIntrinsics().getFov()) << " distCoeffs: " << calibration.getDistCoeffs();
-    string oneLine = intrinsics.str();
-    ofStringReplace(oneLine, "\n", "");
-	ofDrawBitmapStringHighlight(oneLine, 10, 20, yellowPrint, ofColor(0));
-	ofDrawBitmapStringHighlight("movement: " + ofToString(diffMean), 10, 40, cyanPrint);
-	ofDrawBitmapStringHighlight("reproj error: " + ofToString(calibration.getReprojectionError()) + " from " + ofToString(calibration.size()), 10, 60, magentaPrint);
+	drawHighlightString(intrinsics.str(), 10, 20, yellowPrint, ofColor(0));
+	drawHighlightString("movement: " + ofToString(diffMean), 10, 40, cyanPrint);
+	drawHighlightString("reproj error: " + ofToString(calibration.getReprojectionError()) + " from " + ofToString(calibration.size()), 10, 60, magentaPrint);
 	for(int i = 0; i < calibration.size(); i++) {
-		ofDrawBitmapStringHighlight(ofToString(i) + ": " + ofToString(calibration.getReprojectionError(i)), 10, 80 + 16 * i, magentaPrint);
+		drawHighlightString(ofToString(i) + ": " + ofToString(calibration.getReprojectionError(i)), 10, 80 + 16 * i, magentaPrint);
 	}
 }
 

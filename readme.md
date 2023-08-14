@@ -1,13 +1,8 @@
 # Introduction
 
-ofxCv represents an alternative approach to wrapping OpenCV for openFrameworks.
+ofxCv represents an alternative approach to wrapping OpenCV for openFrameworks. It is designed for openFrameworks 007+ compatibility only.
 
 # Installation
-
-First, pick the branch that matches your version of openFrameworks:
-
-* OF [stable](https://github.com/openframeworks/openFrameworks/tree/stable) (0.9.8): use [ofxCv/stable](https://github.com/kylemcdonald/ofxCv/tree/stable)
-* OF [master](https://github.com/openframeworks/openFrameworks) (0.10.0): use [ofxCv/master](https://github.com/kylemcdonald/ofxCv/)
 
 Either clone out the source code using git:
 
@@ -16,7 +11,9 @@ Either clone out the source code using git:
 
 Or download the source from GitHub [here](https://github.com/kylemcdonald/ofxCv/archive/master.zip), unzip the folder, rename it from `ofxCv-master` to `ofxCv` and place it in your `openFrameworks/addons` folder.
 
-To run the examples, import them into the project generator, create a new project, and open the project file in your IDE.
+You don't need to move any of the examples anywhere, you can run them in place.
+
+**Important**: if you are using the most up-to-date version of openFrameworks from GitHub, or using the nightly builds, make sure to use [ofxCv/develop](https://github.com/kylemcdonald/ofxCv/tree/develop).
 
 # Goals
 
@@ -55,8 +52,8 @@ Using ofxCv requires:
 Your linker will also need to know where the OpenCv headers are. In XCode this means modifying one line in Project.xconfig:
 
 	HEADER_SEARCH_PATHS = $(OF_CORE_HEADERS) "../../../addons/ofxOpenCv/libs/opencv/include/" "../../../addons/ofxCv/libs/ofxCv/include/"
-
-Alternatively, I recommend using [OFXCodeMenu](https://github.com/openframeworks/OFXcodeMenu) to add ofxCv to your project.
+	
+Alternatively, I recommend using [OFPlugin](https://github.com/admsyn/OFPlugin) to add ofxCv to your project.
 
 ## Including ofxCv
 
@@ -84,7 +81,7 @@ The rest of ofxCv is mostly helper functions (for example, `threshold()`) and wr
 `toCv()` is used to convert openFrameworks data to OpenCv data. For example:
 
 	ofImage img;
-	img.load("image.png");
+	img.loadImage("image.png");
 	Mat imgMat = toCv(img);
 
 This creates a wrapper for `img` called `imgMat`. To create a deep copy, use `clone()`:

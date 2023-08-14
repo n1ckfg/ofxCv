@@ -4,7 +4,7 @@ using namespace cv;
 using namespace ofxCv;
 
 void ofApp::setup(){
-	grabber.setup(640,480);
+	grabber.initGrabber(640,480);
 }
 
 void ofApp::update(){
@@ -19,7 +19,7 @@ void ofApp::draw(){
 	flow.draw();
 	if(ofGetMousePressed()){
 		ofNoFill();
-		ofDrawRectangle(rect);
+		ofRect(rect);
 	}
 }
 
@@ -45,7 +45,9 @@ void ofApp::mouseReleased(int x, int y, int button){
 			keypointsInside.push_back(keypoints[i]);
 		}
 	}
+    #if CV_MAJOR_VERSION>=2 && (CV_MINOR_VERSION>4 || (CV_MINOR_VERSION==4 && CV_SUBMINOR_VERSION>=1))
 	KeyPointsFilter::retainBest(keypointsInside,30);
+    #endif
 	KeyPoint::convert(keypointsInside,featuresToTrack);
 	flow.setFeaturesToTrack(featuresToTrack);
 }

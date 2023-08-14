@@ -6,7 +6,7 @@ using namespace cv;
 void ofApp::setup() {
     ofSetVerticalSync(true);
     ofSetFrameRate(120);
-    cam.setup(640, 480);
+    cam.initGrabber(640, 480);
     smile.setup();
 }
 
